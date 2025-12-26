@@ -1,7 +1,6 @@
 package com.upi_switch.demo.service.impl;
 
 import com.upi_switch.demo.exception.BaseException;
-import com.upi_switch.demo.model.dto.MerchantDTO;
 import com.upi_switch.demo.model.entity.MerchantEntity;
 import com.upi_switch.demo.model.request.MerchantCreationRequestDTO;
 import com.upi_switch.demo.model.response.MerchantCreationResponseDTO;
