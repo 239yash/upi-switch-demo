@@ -6,5 +6,6 @@ import jakarta.validation.Valid;
 import reactor.core.publisher.Mono;
 
 public interface MerchantService {
+
     Mono<MerchantCreationResponseDTO> createMerchant(@Valid MerchantCreationRequestDTO request);
 }

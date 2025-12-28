@@ -6,7 +6,7 @@ import com.upi_switch.demo.model.request.MerchantCreationRequestDTO;
 import com.upi_switch.demo.model.response.MerchantCreationResponseDTO;
 import com.upi_switch.demo.repository.MerchantRepository;
 import com.upi_switch.demo.service.MerchantService;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 import java.time.Instant;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Slf4j
 public class MerchantServiceImpl implements MerchantService {
 
@@ -24,11 +24,11 @@ public class MerchantServiceImpl implements MerchantService {
     @Override
     public Mono<MerchantCreationResponseDTO> createMerchant(
             MerchantCreationRequestDTO request) {
-        return merchantRepository.existsById(request.getMerchantId())
+        return merchantRepository.existsByMerchantId(request.getMerchantId())
                 .flatMap(exists -> {
                     if (exists) {
-                        log.error("duplicate merchant creation attempt: {}", request.getMerchantId());
-                        return Mono.error(new BaseException("merchantId already exists", HttpStatus.FORBIDDEN)
+                        log.error("[MERCHANT_OPS] duplicate merchant creation attempt: {}", request.getMerchantId());
+                        return Mono.error(new BaseException("merchant already exists with id: " + request.getMerchantId(), HttpStatus.FORBIDDEN)
                         );
                     }
                     Instant now = Instant.now();
@@ -42,8 +42,12 @@ public class MerchantServiceImpl implements MerchantService {
                             .createdAt(now)
                             .updatedAt(now)
                             .build();
-                    return merchantRepository.save(merchant)
-                            .map(this::toResponse);
+                    return merchantRepository
+                            .save(merchant)
+                            .flatMap(savedEntity -> {
+                                log.info("[MERCHANT_OPS] saved merchant entity with id: {}", savedEntity.getMerchantId());
+                                return Mono.just(toResponse(savedEntity));
+                            });
                 });
     }
 

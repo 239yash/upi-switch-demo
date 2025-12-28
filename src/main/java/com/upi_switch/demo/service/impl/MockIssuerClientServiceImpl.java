@@ -21,23 +21,36 @@ import java.util.concurrent.TimeoutException;
 public class MockIssuerClientServiceImpl implements IssuerClientService {
 
     private static final Duration ISSUER_TIMEOUT = Duration.ofSeconds(3);
-    private static final Random RANDOM = new Random();
+    private final Random random;
+
+    public MockIssuerClientServiceImpl() {
+        this.random = new Random();
+    }
+    public MockIssuerClientServiceImpl(Random random) {
+        this.random = random;
+    }
 
     @Override
     public Mono<IssuerResponseDTO> processTransaction(TransactionEntity request) {
-        int outcome = RANDOM.nextInt(4);
+        int outcome = random.nextInt(4);
         String rrn = request.getRrn();
+
         return Mono.defer(() -> switch (outcome) {
-            case 0 -> Mono.just(new IssuerResponseDTO(rrn, null, generateIssuerRef()));
-            case 1 -> Mono.error(new IssuerClientSideException("client side error", generateIssuerRef()));
-            case 2 -> Mono.error(new IssuerErrorException("something went wrong with the issuer"));
-            default -> Mono.delay(Duration.ofSeconds(10)).then(Mono.error(new TimeoutException("issuer timeout")));
-        }).timeout(ISSUER_TIMEOUT)
-                .onErrorMap(TimeoutException.class, ex -> new IssuerTimeoutException("issuer timeout"));
+                    case 0 -> Mono.just(new IssuerResponseDTO(rrn, null, generateIssuerRef()));
+                    case 1 -> Mono.error(new IssuerClientSideException("client side error", generateIssuerRef()));
+                    case 2 -> Mono.error(new IssuerErrorException("something went wrong with the issuer"));
+                    case 3 -> Mono.delay(Duration.ofSeconds(10))
+                            .then(Mono.error(new TimeoutException("issuer timeout")));
+                    default -> Mono.error(new IssuerClientSideException("default client side error", generateIssuerRef()));
+                })
+                .timeout(ISSUER_TIMEOUT)
+                .onErrorMap(TimeoutException.class,
+                        ex -> new IssuerTimeoutException("issuer timeout"));
     }
 
     private String generateIssuerRef() {
         return "ISS-" + UUID.randomUUID().toString().substring(0, 8);
     }
 }
+
 

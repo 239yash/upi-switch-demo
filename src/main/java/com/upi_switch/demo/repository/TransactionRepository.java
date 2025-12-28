@@ -17,13 +17,9 @@ public interface TransactionRepository
 
     Mono<Boolean> existsByRrn(String rrn);
 
-    Mono<Boolean> existsByReversalRrn(String reversalRrn);
-
     Mono<TransactionEntity> findByRrn(String rrn);
 
-    Flux<TransactionEntity> findByMerchantIdAndCreatedAtAfter(String merchantId, Instant after);
-
-    Flux<TransactionEntity> findByMerchantIdAndStatusAndCreatedAtAfter(String merchantId, TransactionStatus status, Instant after);
+    Mono<TransactionEntity> findByReversalRrn(String reversalRrn);
 
     @Query("""
         SELECT COALESCE(SUM(amount), 0)

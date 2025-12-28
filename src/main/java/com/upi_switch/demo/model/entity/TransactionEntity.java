@@ -15,10 +15,12 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("transaction")
+@Table("transactions")
 public class TransactionEntity {
 
     @Id
+    private Long id;
+
     @Column("rrn")
     private String rrn;
 

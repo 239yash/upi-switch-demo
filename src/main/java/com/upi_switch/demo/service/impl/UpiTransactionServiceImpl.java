@@ -3,10 +3,7 @@ package com.upi_switch.demo.service.impl;
 import com.upi_switch.demo.configuration.StateMachineConfiguration;
 import com.upi_switch.demo.constant.TransactionStatus;
 import com.upi_switch.demo.constant.TransactionType;
-import com.upi_switch.demo.exception.IssuerClientSideException;
-import com.upi_switch.demo.exception.IssuerErrorException;
-import com.upi_switch.demo.exception.IssuerTimeoutException;
-import com.upi_switch.demo.exception.NotFoundException;
+import com.upi_switch.demo.exception.*;
 import com.upi_switch.demo.model.dto.TransactionEventDTO;
 import com.upi_switch.demo.model.entity.TransactionEntity;
 import com.upi_switch.demo.model.entity.TransactionEventEntity;
@@ -40,19 +37,25 @@ public class UpiTransactionServiceImpl implements TransactionService {
 
     @Override
     public Mono<TransactionResponseDTO> processTransaction(TransactionRequestDTO request, TransactionType transactionType) {
-        return transactionRepository.findById(request.getRrn())
+        return transactionRepository.findByRrn(request.getRrn())
                 .flatMap(existing -> Mono.just(toResponse(existing)))
                 .switchIfEmpty(
                         createTransaction(request, transactionType)
                                 .flatMap(this::validateTransaction)
-                                .flatMap(this::sendToIssuer)
+                                .flatMap(transactionEntity -> {
+                                    if (transactionEntity.getStatus().name().equals("FAILED")) {
+                                        return Mono.error(new ClientSideException("validations failed for the transaction with the reason: " + transactionEntity.getFailureReason()));
+                                    } else {
+                                        return sendToIssuer(transactionEntity);
+                                    }
+                                })
                                 .map(this::toResponse)
                                 .onErrorResume(this::handleFailure)
                 );
     }
 
     private Mono<TransactionResponseDTO> handleFailure(Throwable ex) {
-        log.error("[TXN_OPS] transaction processing failed: {}", ex.getMessage(), ex);
+        log.error("[TXN_OPS] transaction processing failed: {}", ex.getMessage());
         return Mono.error(ex);
     }
 
@@ -76,6 +79,7 @@ public class UpiTransactionServiceImpl implements TransactionService {
         return validationService.validate(txn)
                 .flatMap(result -> {
                     if (!result.isValid()) {
+                        log.info("[TXN_OPS] transaction validation failed: {}", result.getMessage());
                         stateMachine.validateTransition(txn.getStatus(), TransactionStatus.FAILED);
                         txn.setStatus(TransactionStatus.FAILED);
                         txn.setFailureReason(result.getMessage());
@@ -166,7 +170,7 @@ public class UpiTransactionServiceImpl implements TransactionService {
     }
 
     public Mono<TransactionDetailsResponseDTO> getTransaction(String rrn) {
-        Mono<TransactionEntity> txnMono = transactionRepository.findById(rrn)
+        Mono<TransactionEntity> txnMono = transactionRepository.findByRrn(rrn)
                 .switchIfEmpty(Mono.error(new NotFoundException("transaction not found with rrn: " + rrn)));
         Mono<List<TransactionEventEntity>> eventsMono = transactionEventRepository.findByRrnOrderByEventTimeAsc(rrn).collectList();
         return Mono.zip(txnMono, eventsMono)

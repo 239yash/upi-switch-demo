@@ -18,7 +18,10 @@ import java.time.Instant;
 @AllArgsConstructor
 @Table("merchant")
 public class MerchantEntity {
+
     @Id
+    private Long id;
+
     @Column("merchant_id")
     private String merchantId;
 
