@@ -1,0 +1,151 @@
+{
+	"info": {
+		"_postman_id": "7e97211c-994f-4520-86c9-88aabc7abd36",
+		"name": "Upi-Switch",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "11385989"
+	},
+	"item": [
+		{
+			"name": "upi-pay",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"rrn\": \"M126-P13\",\n  \"payerVpa\": \"raj@upi\",\n  \"merchantId\": \"M126\",\n  \"amount\": \"1000.00\",\n  \"note\": \"Order#7781\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/upi/pay",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"upi",
+						"pay"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "upi-collect",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"rrn\": \"123456789013\",\n  \"payerVpa\": \"raj@upi\",\n  \"merchantId\": \"M124\",\n  \"amount\": \"750.00\",\n  \"note\": \"Subscription payment\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/upi/collect",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"upi",
+						"collect"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "upi-reversal",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"originalRrn\": \"M126-P11\",\n  \"reversalRrn\": \"M126-P11-REV2\",\n  \"reason\": \"customer dispute\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/upi/reversal",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"upi",
+						"reversal"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "merchant-creation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"merchantId\": \"M126\",\n    \"name\": \"Amazon Store\",\n    \"mcc\": \"5311\",\n    \"status\": \"ACTIVE\",\n    \"dailyLimit\": 5000.00,\n    \"perTxnLimit\": 1000.00\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/merchants",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"merchants"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get-transaction",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/upi/transactions/M123-P24",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"upi",
+						"transactions",
+						"M123-P24"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
