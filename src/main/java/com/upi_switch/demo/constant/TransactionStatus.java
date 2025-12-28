@@ -6,5 +6,8 @@ public enum TransactionStatus {
     SENT_TO_BANK,
     SUCCESS,
     FAILED,
-    TIMEOUT
+    TIMEOUT,
+    REVERSAL_INITIATED,
+    REVERSED,
+    REVERSAL_FAILED
 }

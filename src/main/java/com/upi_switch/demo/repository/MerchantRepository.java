@@ -1,7 +1,19 @@
 package com.upi_switch.demo.repository;
 
+import com.upi_switch.demo.constant.MerchantStatus;
 import com.upi_switch.demo.model.entity.MerchantEntity;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
+import org.springframework.stereotype.Repository;
 
-public interface MerchantRepository extends R2dbcRepository<MerchantEntity, String> {
+import reactor.core.publisher.Mono;
+
+@Repository
+public interface MerchantRepository
+        extends R2dbcRepository<MerchantEntity, String> {
+
+    Mono<Boolean> existsByMerchantId(String merchantId);
+
+    Mono<MerchantEntity> findByMerchantId(String merchantId);
+
+    Mono<Boolean> existsByMerchantIdAndStatus(String merchantId, MerchantStatus status);
 }

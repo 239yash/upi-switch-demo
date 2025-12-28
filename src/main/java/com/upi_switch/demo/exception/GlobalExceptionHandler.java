@@ -1,6 +1,7 @@
 package com.upi_switch.demo.exception;
 
 import com.upi_switch.demo.model.response.ResponseDTO;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,6 +16,16 @@ public class GlobalExceptionHandler {
         return Mono.just(
                 ResponseEntity
                         .status(ex.getHttpStatus())
+                        .body(response)
+        );
+    }
+
+    @ExceptionHandler(Exception.class)
+    public Mono<ResponseEntity<ResponseDTO<Void>>> handleException(Exception ex) {
+        ResponseDTO<Void> response = ResponseDTO.error(ex.getMessage());
+        return Mono.just(
+                ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(response)
         );
     }
