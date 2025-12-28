@@ -271,6 +271,28 @@ To ensure observability and traceability of UPI transactions, the application us
 ### Screenshot of Logs
 ![traceid.png](src/main/resources/traceid.png)
 
+## Logging Configuration
+
+The application uses **Logback** for logging, combined with **MDC** and **Reactor Context** for traceId propagation. This ensures all logs for a transaction are correlated.
+
+### Logback Configuration
+
+```xml
+    <configuration>
+        <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>
+                    %d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Kolkata} %-4r [%t] [traceId=%X{traceId}] %5p %c{1} - %m %n
+                </pattern>
+            </encoder>
+        </appender>
+    
+        <root level="INFO">
+            <appender-ref ref="stdout"/>
+        </root>
+    </configuration>
+```
+
 ## Assumptions
 - issuer ref generation hardcoded as the issuer was a mock service. 
 - introduction of an extra field/column in the transactions table named as `reversal_rrn` for storing the reversal rrn of the transactions in case of reversal.
