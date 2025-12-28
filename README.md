@@ -272,5 +272,5 @@ To ensure observability and traceability of UPI transactions, the application us
 ![traceid.png](src/main/resources/traceid.png)
 
 ## Assumptions
-- issuer ref generation hardcoded as the issuer for a mock service. 
+- issuer ref generation hardcoded as the issuer was a mock service. 
 - introduction of an extra field/column in the transactions table named as `reversal_rrn` for storing the reversal rrn of the transactions in case of reversal.
