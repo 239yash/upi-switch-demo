@@ -6,10 +6,15 @@ import com.upi_switch.demo.constant.TransactionType;
 import com.upi_switch.demo.exception.IssuerClientSideException;
 import com.upi_switch.demo.exception.IssuerErrorException;
 import com.upi_switch.demo.exception.IssuerTimeoutException;
+import com.upi_switch.demo.exception.NotFoundException;
+import com.upi_switch.demo.model.dto.TransactionEventDTO;
 import com.upi_switch.demo.model.entity.TransactionEntity;
+import com.upi_switch.demo.model.entity.TransactionEventEntity;
 import com.upi_switch.demo.model.request.TransactionRequestDTO;
 import com.upi_switch.demo.model.response.IssuerResponseDTO;
+import com.upi_switch.demo.model.response.TransactionDetailsResponseDTO;
 import com.upi_switch.demo.model.response.TransactionResponseDTO;
+import com.upi_switch.demo.repository.TransactionEventRepository;
 import com.upi_switch.demo.repository.TransactionRepository;
 import com.upi_switch.demo.service.IssuerClientService;
 import com.upi_switch.demo.service.TransactionService;
@@ -19,6 +24,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -30,6 +36,7 @@ public class UpiTransactionServiceImpl implements TransactionService {
     private final IssuerClientService issuerClient;
     private final TransactionEventAuditService auditService;
     private final StateMachineConfiguration stateMachine;
+    private final TransactionEventRepository transactionEventRepository;
 
     @Override
     public Mono<TransactionResponseDTO> processTransaction(TransactionRequestDTO request, TransactionType transactionType) {
@@ -75,7 +82,7 @@ public class UpiTransactionServiceImpl implements TransactionService {
                         txn.setUpdatedAt(Instant.now());
                         return transactionRepository.save(txn)
                                 .flatMap(saved ->
-                                        auditService.audit(saved, TransactionStatus.FAILED));
+                                        auditService.audit(saved, TransactionStatus.FAILED, result.getMessage()));
                     }
                     stateMachine.validateTransition(
                             txn.getStatus(), TransactionStatus.VALIDATED);
@@ -130,7 +137,7 @@ public class UpiTransactionServiceImpl implements TransactionService {
         txn.setUpdatedAt(Instant.now());
         return transactionRepository.save(txn)
                 .flatMap(saved ->
-                        auditService.audit(saved, TransactionStatus.FAILED));
+                        auditService.audit(saved, TransactionStatus.FAILED, "issuer-failure"));
     }
 
     private Mono<TransactionEntity> handleTimeout(TransactionEntity txn) {
@@ -140,7 +147,7 @@ public class UpiTransactionServiceImpl implements TransactionService {
         txn.setUpdatedAt(Instant.now());
         return transactionRepository.save(txn)
                 .flatMap(saved ->
-                        auditService.audit(saved, TransactionStatus.TIMEOUT));
+                        auditService.audit(saved, TransactionStatus.TIMEOUT, "issuer-timeout"));
     }
 
     private TransactionResponseDTO toResponse(TransactionEntity txn) {
@@ -156,5 +163,22 @@ public class UpiTransactionServiceImpl implements TransactionService {
                 .createdAt(txn.getCreatedAt())
                 .updatedAt(txn.getUpdatedAt())
                 .build();
+    }
+
+    public Mono<TransactionDetailsResponseDTO> getTransaction(String rrn) {
+        Mono<TransactionEntity> txnMono = transactionRepository.findById(rrn)
+                .switchIfEmpty(Mono.error(new NotFoundException("transaction not found with rrn: " + rrn)));
+        Mono<List<TransactionEventEntity>> eventsMono = transactionEventRepository.findByRrnOrderByEventTimeAsc(rrn).collectList();
+        return Mono.zip(txnMono, eventsMono)
+                .map(tuple -> TransactionDetailsResponseDTO.builder()
+                        .transaction(toResponse(tuple.getT1()))
+                        .events(tuple.getT2().stream()
+                                .map(this::toEventDTO)
+                                .toList())
+                        .build());
+    }
+
+    private TransactionEventDTO toEventDTO(TransactionEventEntity e) {
+        return new TransactionEventDTO(e.getEventType(), e.getEventTime(), e.getDetails());
     }
 }

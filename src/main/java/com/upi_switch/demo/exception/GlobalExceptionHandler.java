@@ -39,5 +39,41 @@ public class GlobalExceptionHandler {
                         .body(response)
         );
     }
+
+    @ExceptionHandler(IssuerClientSideException.class)
+    public Mono<ResponseEntity<ResponseDTO<Void>>> handleIssuerClientException(IssuerClientSideException ex) {
+        return Mono.just(
+                ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(ResponseDTO.error(ex.getMessage()))
+        );
+    }
+
+    @ExceptionHandler(IssuerErrorException.class)
+    public Mono<ResponseEntity<ResponseDTO<Void>>> handleIssuerServerErrorException(IssuerErrorException ex) {
+        return Mono.just(
+                ResponseEntity
+                        .status(HttpStatus.BAD_GATEWAY)
+                        .body(ResponseDTO.error(ex.getMessage()))
+        );
+    }
+
+    @ExceptionHandler(IssuerTimeoutException.class)
+    public Mono<ResponseEntity<ResponseDTO<Void>>> handleIssuerTimeoutException(IssuerTimeoutException ex) {
+        return Mono.just(
+                ResponseEntity
+                        .status(HttpStatus.GATEWAY_TIMEOUT)
+                        .body(ResponseDTO.error(ex.getMessage()))
+        );
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public Mono<ResponseEntity<ResponseDTO<Void>>> handleNotFoundException(NotFoundException ex) {
+        return Mono.just(
+                ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(ResponseDTO.error(ex.getMessage()))
+        );
+    }
 }
 

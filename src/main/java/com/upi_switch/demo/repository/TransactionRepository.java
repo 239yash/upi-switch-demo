@@ -17,6 +17,8 @@ public interface TransactionRepository
 
     Mono<Boolean> existsByRrn(String rrn);
 
+    Mono<Boolean> existsByReversalRrn(String reversalRrn);
+
     Mono<TransactionEntity> findByRrn(String rrn);
 
     Flux<TransactionEntity> findByMerchantIdAndCreatedAtAfter(String merchantId, Instant after);

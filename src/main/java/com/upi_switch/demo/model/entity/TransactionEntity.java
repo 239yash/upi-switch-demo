@@ -43,6 +43,9 @@ public class TransactionEntity {
     @Column("issuer_ref")
     private String issuerRef;
 
+    @Column("reversal_rrn")
+    private String reversalRrn;
+
     @Column("created_at")
     private Instant createdAt;
 

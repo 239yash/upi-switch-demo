@@ -3,6 +3,7 @@ package com.upi_switch.demo.model.entity;
 import com.upi_switch.demo.constant.TransactionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -13,6 +14,7 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
 @Table("transaction_events")
 public class TransactionEventEntity {
 
