@@ -4,7 +4,7 @@ import com.upi_switch.demo.constant.MerchantStatus;
 import com.upi_switch.demo.constant.TransactionValidationFailureReasonCode;
 import com.upi_switch.demo.model.dto.TransactionValidationResultDTO;
 import com.upi_switch.demo.model.entity.MerchantEntity;
-import com.upi_switch.demo.model.request.TransactionRequestDTO;
+import com.upi_switch.demo.model.entity.TransactionEntity;
 import com.upi_switch.demo.repository.MerchantRepository;
 import com.upi_switch.demo.repository.TransactionRepository;
 import com.upi_switch.demo.service.RateLimitingService;
@@ -26,7 +26,7 @@ public class ValidationServiceImpl {
     private final TransactionRepository transactionRepository;
     private final RateLimitingService rateLimitingService;
 
-    public Mono<TransactionValidationResultDTO> validate(TransactionRequestDTO req) {
+    public Mono<TransactionValidationResultDTO> validate(TransactionEntity req) {
         return transactionRepository.existsByRrn(req.getRrn())
                 .flatMap(exists -> {
                     if (exists) {
@@ -43,7 +43,7 @@ public class ValidationServiceImpl {
 
 
     private Mono<TransactionValidationResultDTO> validateAgainstMerchant(
-            TransactionRequestDTO req,
+            TransactionEntity req,
             MerchantEntity merchant) {
         if (merchant.getStatus() != MerchantStatus.ACTIVE) {
             return Mono.just(failure(

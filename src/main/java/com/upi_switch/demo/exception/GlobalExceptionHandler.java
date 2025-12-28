@@ -20,6 +20,16 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidTransactionStateException.class)
+    public Mono<ResponseEntity<ResponseDTO<Void>>> handleInvalidTransactionStateException(InvalidTransactionStateException ex) {
+        ResponseDTO<Void> response = ResponseDTO.error(ex.getMessage());
+        return Mono.just(
+                ResponseEntity
+                        .status(HttpStatus.CONFLICT)
+                        .body(response)
+        );
+    }
+
     @ExceptionHandler(Exception.class)
     public Mono<ResponseEntity<ResponseDTO<Void>>> handleException(Exception ex) {
         ResponseDTO<Void> response = ResponseDTO.error(ex.getMessage());

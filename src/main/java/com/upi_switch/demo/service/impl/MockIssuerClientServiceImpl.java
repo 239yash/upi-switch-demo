@@ -3,6 +3,7 @@ package com.upi_switch.demo.service.impl;
 import com.upi_switch.demo.exception.IssuerClientSideException;
 import com.upi_switch.demo.exception.IssuerErrorException;
 import com.upi_switch.demo.exception.IssuerTimeoutException;
+import com.upi_switch.demo.model.entity.TransactionEntity;
 import com.upi_switch.demo.model.request.TransactionRequestDTO;
 import com.upi_switch.demo.model.response.IssuerResponseDTO;
 import com.upi_switch.demo.service.IssuerClientService;
@@ -23,7 +24,7 @@ public class MockIssuerClientServiceImpl implements IssuerClientService {
     private static final Random RANDOM = new Random();
 
     @Override
-    public Mono<IssuerResponseDTO> processTransaction(TransactionRequestDTO request) {
+    public Mono<IssuerResponseDTO> processTransaction(TransactionEntity request) {
         int outcome = RANDOM.nextInt(4);
         String rrn = request.getRrn();
         return Mono.defer(() -> switch (outcome) {
