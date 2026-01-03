@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
         ResponseDTO<Void> response = ResponseDTO.error(ex.getMessage());
         return Mono.just(
                 ResponseEntity
-                        .status(HttpStatus.BAD_REQUEST)
+                        .status(ex.getHttpStatus())
                         .body(response)
         );
     }

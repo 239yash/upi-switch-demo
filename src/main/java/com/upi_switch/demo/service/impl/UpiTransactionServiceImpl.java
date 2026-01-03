@@ -17,6 +17,7 @@ import com.upi_switch.demo.service.IssuerClientService;
 import com.upi_switch.demo.service.TransactionService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -38,12 +39,21 @@ public class UpiTransactionServiceImpl implements TransactionService {
     @Override
     public Mono<TransactionResponseDTO> processTransaction(TransactionRequestDTO request, TransactionType transactionType) {
         return transactionRepository.findByRrn(request.getRrn())
-                .flatMap(existing -> Mono.just(toResponse(existing)))
+                .flatMap(existing -> {
+                    if (existing.getMerchantId().equals(request.getMerchantId())) {
+                        return Mono.just(toResponse(existing));
+                    } else {
+                        return Mono.error(new ClientSideException("merchant id not mapped correctly with the rrn", HttpStatus.FORBIDDEN));
+                    }
+                })
                 .switchIfEmpty(
                         createTransaction(request, transactionType)
                                 .flatMap(this::validateTransaction)
                                 .flatMap(transactionEntity -> {
                                     if (transactionEntity.getStatus().name().equals("FAILED")) {
+                                        if (transactionEntity.getFailureReason().startsWith("too many requests")) {
+                                            return Mono.error(new ClientSideException("validations failed for the transaction with the reason: " + transactionEntity.getFailureReason(), HttpStatus.TOO_MANY_REQUESTS));
+                                        }
                                         return Mono.error(new ClientSideException("validations failed for the transaction with the reason: " + transactionEntity.getFailureReason()));
                                     } else {
                                         return sendToIssuer(transactionEntity);
