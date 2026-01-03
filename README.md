@@ -296,3 +296,5 @@ The application uses **Logback** for logging, combined with **MDC** and **Reacto
 ## Assumptions
 - issuer ref generation hardcoded as the issuer was a mock service. 
 - introduction of an extra field/column in the transactions table named as `reversal_rrn` for storing the reversal rrn of the transactions in case of reversal.
+- if the request for upi transaction is posted again with same rrn but different merchant id, system will not return the transaction data instead it will return an error saying `merchant id not mapped correctly with the rrn`.
+- changed http status code for rate limiting from 400 to 429
